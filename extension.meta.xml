@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extension id="sitepreferences" status="released" xmlns="http://symphony-cms.com/schemas/extension/1.0">
+	<name>Site preferences</name>
+	<description>Manage custom front-end settings in the backend.</description>
+	<repo type="github">https://github.com/hananils/sitepreferences</repo>
+	<types>
+		<type>Other</type>
+	</types>
+	<authors>
+		<author>
+			<name github="hananils" symphony="hananils">Büro für Web- und Textgestaltung</name>
+			<website>http://hananils.de</website>
+		</author>
+		<author>
+			<name github="nilshoerrmann" symphony="Nils">Nils Hörrmann</name>
+			<website>http://nilshoerrmann.de</website>
+		</author>
+	</authors>
+	<releases>
+		<release version="1.0" date="2012-01-17" min="2.2">
+			- Initial release
+		</release>
+	</releases>
+</extension>
