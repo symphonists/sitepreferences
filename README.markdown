@@ -2,7 +2,7 @@
 
 Site preferences offer a way to manage custom front-end settings in the backend. You define all settings in a separate configuration file inside your `workspace`, `preferences.site.php`. This way all preferences can be tracked with Git in case you share your workspace with co-workers.
 
-Site preferences allow the creation of multiple fieldset shown on the preference page in the backend. Each fieldset can contain multiple instances of the following field types:
+Site preferences allow the creation of multiple fieldsets shown on the preference page in the backend. Each fieldset can contain multiple instances of the following field types:
 
 - input fields,
 - text areas,
