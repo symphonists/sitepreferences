@@ -14,7 +14,7 @@
 		public function about() {
 			return array(
 				'name' => 'Site Preferences',
-				'version' => '1.0',
+				'version' => '1.0.1',
 				'release-date' => '2011-01-17',
 				'author' => array(
 					array(
