@@ -7,15 +7,15 @@
 	 * Site Preferences Extension
 	 */
 	Class extension_sitepreferences extends Extension {
-	
+
 		/**
 		 * @see http://symphony-cms.com/learn/api/2.2.5/toolkit/extension/#about
 		 */
 		public function about() {
 			return array(
 				'name' => 'Site Preferences',
-				'version' => '1.0.1',
-				'release-date' => '2011-01-17',
+				'version' => '1.1',
+				'release-date' => '2011-01-23',
 				'author' => array(
 					array(
 						'name' => 'Büro für Web- und Textgestaltung',
@@ -54,13 +54,13 @@
 				),
 			);
 		}
-		
+
 		/**
 		 * Add site preferences
 		 */
 		public function __addSitePreferences($context) {
 			include(WORKSPACE . '/preferences.site.php');
-			
+
 			// Groups
 			$count = 0;
 			foreach($settings as $fieldset) {
@@ -69,24 +69,24 @@
 				// Add fieldset
 				$group = new XMLElement('fieldset', '<legend>' . $fieldset['name'] . '</legend><input name="' . $prefix . '[name]" value="' . $fieldset['name'] . '" type="hidden" />', array('class' => 'settings'));
 				$context['wrapper']->appendChild($group);
-				
+
 				// Add fields
 				$position = 0;
 				foreach($fieldset['fields'] as $field) {
 					$field['value'] = htmlspecialchars_decode($field['value']);
-				
+
 					switch($field['type']) {
-						
+
 						// Text input
 						case 'input':
 							$item = new XMLElement('label', $field['label'] . ' <input name="' . $prefix . '[fields][' . $position . '][value]" value="' . $field['value'] . '" type="text" />');
 							break;
-						
+
 						// Text area
 						case 'textarea':
 							$item = new XMLElement('label', $field['label'] . ' <textarea name="' . $prefix . '[fields][' . $position . '][value]" rows="10" cols="50">' . $field['value'] . '</textarea>');
 							break;
-						
+
 						// Selectbox
 						case 'select':
 							$options = array('options' => null);
@@ -94,23 +94,23 @@
 								$option = trim($option);
 								$options[] = array($option, (strpos($field['value'], $option) !== false));
 							}
-						
+
 							$item = new XMLElement('label', $field['label']);
 							$item->appendChild(Widget::Select($prefix . '[fields][' . $position . '][value]', $options));
 							break;
-						
+
 						// Checkbox
 						case 'checkbox':
 							$item = new XMLElement('label', '<input name="' . $prefix . '[fields][' . $position . '][value]" value="checked" type="checkbox" ' . ($field['value'] == 'checked' ? 'checked="checked" ' : '') . '/> ' . $field['label']);
 							break;
-						
+
 						// Help text
 						case 'help':
 							$group->appendChild(new XMLElement('p', $field['value'], array('class' => 'help')));
 							$item = Widget::Input($prefix . '[fields][' . $position . '][value]', $field['value'], 'hidden');
 							break;
 					}
-					
+
 					// Append field
 					if(isset($field['name'])) $group->appendChild(Widget::Input($prefix . '[fields][' . $position . '][name]', $field['name'], 'hidden'));
 					if(isset($field['label'])) $group->appendChild(Widget::Input($prefix . '[fields][' . $position . '][label]', $field['label'], 'hidden'));
@@ -120,11 +120,11 @@
 
 					$position++;
 				}
-				
+
 				$count++;
 			}
 		}
-		
+
 		/**
 		 * Save preferences
 		 */
@@ -132,7 +132,7 @@
 			$this->saveSitePreferences($_POST['settings']['sitepreferences']);
 			unset($_POST['settings']['sitepreferences']);
 		}
-		
+
 		/**
 		 * Save site preferences
 		 */
@@ -140,7 +140,7 @@
 			$string  = "<?php\n\t\$settings = " . $this->plain($settings) . ";\n";
 			return General::writeFile(WORKSPACE . '/preferences.site.php', $string, Symphony::Configuration()->get('write_mode', 'file'));
 		}
-		
+
 		/**
 		 * Convert settings to plain string
 		 */
@@ -166,21 +166,21 @@
 
 			return $string;
 		}
-		
+
 		/**
 		 * Add params to parameter pool
 		 */
 		public function __addParams($context) {
 			include(WORKSPACE . '/preferences.site.php');
-			
+
 			// Get groups
 			foreach($settings as $fieldset) {
 				$prefix = 'sp-' . General::createHandle($fieldset['name']);
-				
+
 				// Get settings
 				foreach($fieldset['fields'] as $field) {
 					if($field['type'] != 'help') {
-					
+
 						// Checkbox states
 						if($field['type'] == 'checkbox') {
 							if($field['value'] == 'checked') {
@@ -190,15 +190,15 @@
 								$field['value'] = 'No';
 							}
 						}
-						
+
 						// Generate output
 						$id = $prefix . '-' . General::createHandle($field['name']);
 						$context['params'][$id] = $field['value'];
 					}
 				}
-}
+			}
 		}
-		
+
 		/**
 		 * @see http://symphony-cms.com/learn/api/2.2.5/toolkit/extension/#install
 		 */
@@ -244,7 +244,7 @@
 					)
 				)
 			);
-			
+
 			// Store default site preferences
 			return $this->saveSitePreferences($settings);
 		}
@@ -253,7 +253,7 @@
 		 * @see http://symphony-cms.com/learn/api/2.2.5/toolkit/extension/#uninstall
 		 */
 		public function uninstall() {
-			return General::writeFile(WORKSPACE . '/preferences.site.php');
+			return General::deleteFile(WORKSPACE . '/preferences.site.php');
 		}
 
 	}
