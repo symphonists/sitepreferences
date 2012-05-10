@@ -9,30 +9,6 @@
 	Class extension_sitepreferences extends Extension {
 
 		/**
-		 * @see http://symphony-cms.com/learn/api/2.2.5/toolkit/extension/#about
-		 */
-		public function about() {
-			return array(
-				'name' => 'Site Preferences',
-				'version' => '1.1',
-				'release-date' => '2011-01-23',
-				'author' => array(
-					array(
-						'name' => 'Büro für Web- und Textgestaltung',
-						'website' => 'http://hananils.de',
-						'email' => 'buero@hananils.de'
-					),
-					array(
-						'name' => 'Nils Hörrmann',
-						'website' => 'http://nilshoerrmann.de',
-						'email' => 'post@nilshoerrmann.de'
-					)
-				),
-				'description'   => 'Manage custom front-end settings in the backend.'
-			);
-		}
-
-		/**
 		 * @see http://symphony-cms.com/learn/api/2.2/toolkit/extension/#getSubscribedDelegates
 		 */
 		public function getSubscribedDelegates() {

@@ -18,6 +18,9 @@
 		</author>
 	</authors>
 	<releases>
+		<release version="1.2" date="2012-05-10" min="2.3">
+			- Symphony 2.3 compatibility
+		</release>
 		<release version="1.1" date="2012-01-23" min="2.2">
 			- Fix wrong function call in uninstaller
 		</release>
