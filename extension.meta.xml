@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <extension id="sitepreferences" status="released" xmlns="http://symphony-cms.com/schemas/extension/1.0">
-	<name>Site preferences</name>
+	<name>Site Preferences</name>
 	<description>Manage custom front-end settings in the backend.</description>
 	<repo type="github">https://github.com/hananils/sitepreferences</repo>
 	<url type="discuss">http://symphony-cms.com/discuss/thread/83250/</url>
@@ -18,6 +18,9 @@
 		</author>
 	</authors>
 	<releases>
+		<release version="1.3" date="2013-11-22" min="2.3">
+			- Added option to include settings in sections drawers
+		</release>
 		<release version="1.2" date="2012-05-10" min="2.3">
 			- Symphony 2.3 compatibility
 		</release>

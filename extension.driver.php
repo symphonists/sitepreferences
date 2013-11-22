@@ -8,9 +8,75 @@
 	 */
 	Class extension_sitepreferences extends Extension {
 
+		private $sitepreferences;
+
+		public function __construct() {
+			$this->sitepreferences = WORKSPACE . '/preferences.site.php';
+		}
+
+	/*-------------------------------------------------------------------------
+		Installation
+	-------------------------------------------------------------------------*/
+
 		/**
-		 * @see http://symphony-cms.com/learn/api/2.2/toolkit/extension/#getSubscribedDelegates
+		 * Create sample file on install, if none exists already.
 		 */
+		public function enable() {
+			if(file_exists($this->sitepreferences)) return true;
+
+			// Create sample settings
+			$settings = array(
+				array(
+					'name' => 'Site Preferences',
+					'sections' => array(),
+					'fields' => array(
+						array(
+							'name' => 'textarea',
+							'label' => 'This is a textarea',
+							'type' => 'textarea',
+							'value' => ''
+						),
+						array(
+							'name' => 'input',
+							'label' => 'This is an input field',
+							'type' => 'input',
+							'value' => ''
+						),
+						array(
+							'name' => 'selectbox',
+							'label' => 'Select something',
+							'type' => 'select',
+							'values' => 'this, is, a, selection, list',
+							'value' => ''
+						)
+					)
+				),
+				array(
+					'name' => 'More preferences',
+					'sections' => array(),
+					'fields' => array(
+						array(
+							'type' => 'help',
+							'value' => 'This is just another group of settings added to the preference page. You can edit all fields and fieldset in the <code>preferences.site.php</code> file inside your <code>workspace</code>.'
+						),
+						array(
+							'name' => 'checkbox',
+							'label' => 'Yes, I\'ve read that!',
+							'type' => 'checkbox',
+							'value' => 'checked'
+						),
+					)
+				)
+			);
+
+			// Store default site preferences
+			return $this->saveSitePreferences($settings);
+		}
+		
+	/*-------------------------------------------------------------------------
+		Delegates
+	-------------------------------------------------------------------------*/
+
 		public function getSubscribedDelegates() {
 			return array(
 				array(
@@ -24,10 +90,20 @@
 					'callback' => '__savePreferences'
 				),
 				array(
+					'page' => '/backend/',
+					'delegate' => 'AdminPagePostCallback',
+					'callback' => '__saveSectionPreferences'
+				),
+				array(
 					'page' => '/frontend/',
 					'delegate' => 'FrontendParamsResolve',
 					'callback' => '__addParams'
 				),
+				array(
+					'page'		=> '/backend/',
+					'delegate'	=> 'InitaliseAdminPageHead',
+					'callback'	=> '__appendDrawer'
+				)
 			);
 		}
 
@@ -35,16 +111,120 @@
 		 * Add site preferences
 		 */
 		public function __addSitePreferences($context) {
-			include(WORKSPACE . '/preferences.site.php');
+			$this->createPreferences($context['wrapper']);
+		}
+
+		/**
+		 * Save preferences
+		 */
+		public function __savePreferences() {
+			$this->saveSitePreferences($_POST['settings']['sitepreferences']);
+			unset($_POST['settings']['sitepreferences']);
+		}
+
+		/**
+		 * Save section preferences
+		 */
+		public function __saveSectionPreferences() {
+			if(isset($_POST['action']['savesitepreferences'])) {
+				include($this->sitepreferences);
+
+				foreach($_POST['settings']['sitepreferences'] as $new) {
+					for($i = 0; $i < count($settings); $i++) { 
+						if($settings[$i]['name'] == $new['name']) {
+							$settings[$i] = $new;
+						}
+					}
+				}
+
+				$this->saveSitePreferences($settings);
+				unset($_POST['settings']['sitepreferences']);
+			}
+		}
+
+		/**
+		 * Append Drawer
+		 */
+		public function __appendDrawer($context) {
+			$callback = Symphony::Engine()->getPageCallback();
+
+			if($callback['driver'] == 'publish' && $callback['context']['page'] == 'index') {
+				$form = Widget::Form(null, 'post', 'sitepreferences');
+				$this->createPreferences($form, $callback['context']['section_handle']);
+				$fieldsets = $form->getChildren();
+				$actions = new XMLElement('div', '<input name="action[savesitepreferences]" type="submit" value="' . __('Save Preferences') . '" />', array('class' => 'actions'));
+				$form->appendChild($actions);
+
+				if(!empty($fieldsets)) {
+					Administration::instance()->Page->addStylesheetToHead(URL . '/extensions/sitepreferences/assets/sitepreferences.publish.css', 'screen', 100);
+					Administration::instance()->Page->insertDrawer(
+						Widget::Drawer('sitepreferences', __('Preferences'), $form)
+					);
+				}
+			}
+		}
+
+		/**
+		 * Add params to parameter pool
+		 */
+		public function __addParams($context) {
+			include($this->sitepreferences);
+
+			// Get groups
+			foreach($settings as $fieldset) {
+				$prefix = 'sp-' . General::createHandle($fieldset['name']);
+
+				// Get settings
+				foreach($fieldset['fields'] as $field) {
+					if($field['type'] != 'help') {
+
+						// Checkbox states
+						if($field['type'] == 'checkbox') {
+							if($field['value'] == 'checked') {
+								$field['value'] = 'Yes';
+							}
+							else {
+								$field['value'] = 'No';
+							}
+						}
+
+						// Generate output
+						$id = $prefix . '-' . General::createHandle($field['name']);
+						$context['params'][$id] = $field['value'];
+					}
+				}
+			}
+		}
+
+	/*-------------------------------------------------------------------------
+		Interface
+	-------------------------------------------------------------------------*/
+
+		/**
+		 * Create preferences
+		 */
+		private function createPreferences(&$wrapper, $filter = array()) {
+			include($this->sitepreferences);
 
 			// Groups
 			$count = 0;
 			foreach($settings as $fieldset) {
+				if(!empty($filter) && !in_array($filter, $fieldset['sections'])) continue;
+
 				$prefix = 'settings[sitepreferences][' . $count . ']';
 
 				// Add fieldset
-				$group = new XMLElement('fieldset', '<legend>' . $fieldset['name'] . '</legend><input name="' . $prefix . '[name]" value="' . $fieldset['name'] . '" type="hidden" />', array('class' => 'settings'));
-				$context['wrapper']->appendChild($group);
+				$group = new XMLElement('fieldset');
+				$legend = new XMLElement('legend', $fieldset['name']);
+				$name = Widget::Input($prefix . '[name]', $fieldset['name'], 'hidden');
+				$sections = Widget::Input($prefix . '[sections]', implode($fieldset['sections'], ','), 'hidden');
+
+				$group->appendChild($legend);
+				$group->appendChild($name);
+				$group->appendChild($sections);
+				$group->setAttribute('class', 'settings');
+
+				$wrapper->appendChild($group);
 
 				// Add fields
 				$position = 0;
@@ -101,31 +281,29 @@
 			}
 		}
 
-		/**
-		 * Save preferences
-		 */
-		public function __savePreferences() {
-			$this->saveSitePreferences($_POST['settings']['sitepreferences']);
-			unset($_POST['settings']['sitepreferences']);
-		}
+	/*-------------------------------------------------------------------------
+		Utilities
+	-------------------------------------------------------------------------*/
 
 		/**
 		 * Save site preferences
 		 */
 		public function saveSitePreferences($settings) {
-			$string  = "<?php\n\t\$settings = " . $this->plain($settings) . ";\n";
-			return General::writeFile(WORKSPACE . '/preferences.site.php', $string, Symphony::Configuration()->get('write_mode', 'file'));
+			$string  = "<?php\n\t\$settings = array(" . $this->plain($settings) . "\n\r\n\t);\n";
+			return General::writeFile($this->sitepreferences, $string, Symphony::Configuration()->get('write_mode', 'file'));
 		}
 
 		/**
 		 * Convert settings to plain string
 		 */
 		public function plain($settings) {
-			$string = 'array(';
+			if(empty($settings)) return;
+
 			foreach($settings as $fieldset){
 				$string .= "\r\n\r\n\t\t###### FIELDSET: " . General::sanitize(strtoupper($fieldset['name'])) . " ######";
 				$string .= "\r\n\t\tarray(";
 				$string .= "\r\n\t\t\t'name' => '" . addslashes(General::sanitize($fieldset['name'])) . "',";
+				$string .= "\r\n\t\t\t'sections' => array(" . $this->wrapInQuotes($fieldset['sections']) . "),";
 				$string .= "\r\n\t\t\t'fields' => array(";
 				foreach($fieldset['fields'] as $fields){
 					$string .= "\r\n\t\t\t\tarray(";
@@ -138,98 +316,25 @@
 				$string .= "\r\n\t\t),";
 				$string .= "\r\n\t\t########";
 			}
-			$string .= "\r\n\t)";
 
 			return $string;
 		}
 
 		/**
-		 * Add params to parameter pool
+		 * Wrap array values in quotes and create comma-separated string
 		 */
-		public function __addParams($context) {
-			include(WORKSPACE . '/preferences.site.php');
+		private function wrapInQuotes($values) {
+			if(empty($values)) return;
 
-			// Get groups
-			foreach($settings as $fieldset) {
-				$prefix = 'sp-' . General::createHandle($fieldset['name']);
-
-				// Get settings
-				foreach($fieldset['fields'] as $field) {
-					if($field['type'] != 'help') {
-
-						// Checkbox states
-						if($field['type'] == 'checkbox') {
-							if($field['value'] == 'checked') {
-								$field['value'] = 'Yes';
-							}
-							else {
-								$field['value'] = 'No';
-							}
-						}
-
-						// Generate output
-						$id = $prefix . '-' . General::createHandle($field['name']);
-						$context['params'][$id] = $field['value'];
-					}
-				}
+			if(!is_array($values)) {
+				$values = explode(',', $values);
 			}
-		}
 
-		/**
-		 * @see http://symphony-cms.com/learn/api/2.2.5/toolkit/extension/#install
-		 */
-		public function enable() {
-			$settings = array(
-				array(
-					'name' => 'Site Preferences',
-					'fields' => array(
-						array(
-							'name' => 'textarea',
-							'label' => 'This is a textarea',
-							'type' => 'textarea',
-							'value' => ''
-						),
-						array(
-							'name' => 'input',
-							'label' => 'This is an input field',
-							'type' => 'input',
-							'value' => ''
-						),
-						array(
-							'name' => 'selectbox',
-							'label' => 'Select something',
-							'type' => 'select',
-							'values' => 'this, is, a, selection, list',
-							'value' => ''
-						)
-					)
-				),
-				array(
-					'name' => 'More preferences',
-					'fields' => array(
-						array(
-							'type' => 'help',
-							'value' => 'This is just another group of settings added to the preference page. You can edit all fields and fieldset in the <code>preferences.site.php</code> file inside your <code>workspace</code>.'
-						),
-						array(
-							'name' => 'checkbox',
-							'label' => 'Yes, I\'ve read that!',
-							'type' => 'checkbox',
-							'value' => 'checked'
-						),
-					)
-				)
-			);
+			for($i = 0; $i < count($values); $i++) { 
+				$values[$i] = "'" . trim($values[$i]) . "'";
+			}
 
-			// Store default site preferences
-			return $this->saveSitePreferences($settings);
-		}
-
-		/**
-		 * @see http://symphony-cms.com/learn/api/2.2.5/toolkit/extension/#uninstall
-		 */
-		public function uninstall() {
-			return General::deleteFile(WORKSPACE . '/preferences.site.php');
+			return implode(',', $values);
 		}
 
 	}

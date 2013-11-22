@@ -12,6 +12,10 @@ Site preferences allow the creation of multiple fieldsets shown on the preferenc
 
 The extension will return all settings as parameters on the front-end.
 
+# Section Preferences
+
+As of version 1.3, it's possible to associate settings with sections by defining the section handle in the fieldset array. These preferences will additionally be editable in a custom drawer in the specified section's index. 
+
 ## Default Configuration:
 	
 	<?php
@@ -20,6 +24,7 @@ The extension will return all settings as parameters on the front-end.
 			###### FIELDSET: SITE PREFERENCES ######
 			array(
 				'name' => 'Site Preferences',
+				'sections' => array('section-handle'),
 				'fields' => array(
 					array(
 						'name' => 'textarea',
@@ -47,6 +52,7 @@ The extension will return all settings as parameters on the front-end.
 			###### FIELDSET: MORE PREFERENCES ######
 			array(
 				'name' => 'More preferences',
+				'sections' => array(),
 				'fields' => array(
 					array(
 						'type' => 'help',
