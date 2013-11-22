@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<extension id="sitepreferences" status="released" xmlns="http://symphony-cms.com/schemas/extension/1.0">
+<extension id="sitepreferences" status="released" xmlns="http://getsymphony.com/schemas/extension/1.0">
 	<name>Site Preferences</name>
 	<description>Manage custom front-end settings in the backend.</description>
 	<repo type="github">https://github.com/hananils/sitepreferences</repo>
