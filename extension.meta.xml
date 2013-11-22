@@ -3,7 +3,7 @@
 	<name>Site Preferences</name>
 	<description>Manage custom front-end settings in the backend.</description>
 	<repo type="github">https://github.com/hananils/sitepreferences</repo>
-	<url type="discuss">http://symphony-cms.com/discuss/thread/83250/</url>
+	<url type="discuss">http://getsymphony.com/discuss/thread/83250</url>
 	<types>
 		<type>Other</type>
 	</types>
